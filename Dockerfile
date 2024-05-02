@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn
+RUN pip install fastapi
+RUN pip install uvicorn
 
 # Clone whisper.cpp repository
 RUN git clone https://github.com/ggerganov/whisper.cpp /usr/local/src/whisper.cpp
@@ -25,5 +26,9 @@ COPY app.py /app/app.py
 # Set working directory
 WORKDIR /app
 
-# Command to run the FastAPI app with Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", $PORT]
+# Make the port available to the world outside this container
+EXPOSE $PORT
+
+# Run the FastAPI app using Uvicorn
+CMD uvicorn server:app --host 0.0.0.0 --port $PORT
+
