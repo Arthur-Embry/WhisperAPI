@@ -31,7 +31,7 @@ RUN cd /app/whisper.cpp && \
     bash ./models/download-ggml-model.sh base.en
 
 # Start the server
-RUN /app/whisper.cpp/build/bin/server -m /app/whisper.cpp/models/ggml-base.en.bin -t 8 -p 8000 &
+RUN uvicorn middleware:app --host 0.0.0.0 --port $PORT &
 
 # Install middleware dependencies
 RUN pip install --no-cache-dir fastapi uvicorn httpx
@@ -49,4 +49,4 @@ COPY hello.wav .
 EXPOSE $PORT
 
 # Run the middleware.py file using uvicorn
-CMD uvicorn middleware:app --host 0.0.0.0 --port $PORT
+CMD /app/whisper.cpp/build/bin/server -m /app/whisper.cpp/models/ggml-base.en.bin -t 8 -p 8000
