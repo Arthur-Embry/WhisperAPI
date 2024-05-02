@@ -25,8 +25,5 @@ COPY app.py /app/app.py
 # Set working directory
 WORKDIR /app
 
-# Set environment variable to specify port for the server
-ENV PORT 8000
-
 # Command to run the FastAPI app with Uvicorn
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "$PORT"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", $PORT]
