@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import httpx
-import os
+import httpx, logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -36,7 +39,13 @@ async def forward_request(request: Request, path_name: str):
         method = request.method
         headers = request.headers
         data = await request.body()
-
-        response = await client.request(method, url, headers=headers, data=data)
-
-    return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+        
+        logger.debug(f"Making request to {url} with method {method}")
+        
+        try:
+            response = await client.request(method, url, headers=headers, data=data)
+            logger.debug(f"Received response with status code {response.status_code}")
+            return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+        except httpx.RequestError as e:
+            logger.error(f"Error occurred while making request: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal Server Error")
