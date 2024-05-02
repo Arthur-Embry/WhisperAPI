@@ -39,6 +39,12 @@ RUN pip install --no-cache-dir fastapi uvicorn httpx
 # Copy the middleware code to the container
 COPY middleware.py .
 
+# Copy the demo code to the container
+COPY demo.html .
+
+#Copy the hello world wav for test transcription
+COPY hello.wav .
+
 # Expose the port
 EXPOSE $PORT
 

@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import httpx, logging
+import httpx
+import logging
+import subprocess
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +21,18 @@ app.add_middleware(
 
 # Define the URL of the internal whisper.cpp server
 WHISPER_SERVER_URL = "http://localhost:8000"
+
+# Test transcription with hello.wav via curl before starting the server
+@app.on_event("startup")
+async def test_transcription():
+    try:
+        # Assuming hello.wav is in the same directory as this script
+        command = 'curl -X POST -F "audio=@hello.wav" -F "language=en" http://localhost:8000/transcribe'
+        result = subprocess.check_output(command, shell=True, text=True)
+        logger.debug(f"Transcription test result: {result}")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error occurred during transcription test: {str(e)}")
+        raise HTTPException(status_code=500, detail="Transcription test failed")
 
 # Serve demo.html at the root
 @app.get("/")
@@ -39,9 +53,7 @@ async def forward_request(request: Request, path_name: str):
         method = request.method
         headers = request.headers
         data = await request.body()
-        
         logger.debug(f"Making request to {url} with method {method}")
-        
         try:
             response = await client.request(method, url, headers=headers, data=data)
             logger.debug(f"Received response with status code {response.status_code}")
