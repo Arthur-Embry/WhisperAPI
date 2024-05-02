@@ -1,34 +1,37 @@
-# Start from a base image with Python and required tools
-FROM python:3.10
+# Use the official lightweight Python image.
+FROM python:3.9-slim
 
-# Install necessary dependencies for whisper.cpp
-RUN apt-get update && apt-get install -y \
-    cmake \
-    g++ \
-    libssl-dev \
-    portaudio19-dev \
-    ffmpeg \
-    && apt-get clean
-
-# Install FastAPI and Uvicorn
-RUN pip install fastapi
-RUN pip install uvicorn
-
-# Clone whisper.cpp repository
-RUN git clone https://github.com/ggerganov/whisper.cpp /usr/local/src/whisper.cpp
-
-# Build whisper.cpp
-RUN cd /usr/local/src/whisper.cpp && cmake . && make
-
-# Copy the FastAPI app script into the container
-COPY app.py /app/app.py
-
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Make the port available to the world outside this container
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        curl \
+        ffmpeg \
+        git \
+        && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone whisper.cpp repo
+RUN git clone https://github.com/ggerganov/whisper.cpp.git /app/whisper.cpp
+
+# Build whisper.cpp
+RUN cd /app/whisper.cpp && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc)
+
+# Download the base model
+RUN cd /app/whisper.cpp && \
+    bash ./models/download-ggml-model.sh base.en
+
+# Expose the port
 EXPOSE $PORT
 
-# Run the FastAPI app using Uvicorn
-CMD uvicorn server:app --host 0.0.0.0 --port $PORT
-
+# Start the server
+CMD ["/app/whisper.cpp/build/bin/server", "-m", "/app/whisper.cpp/models/ggml-base.en.bin", "-t", "8", "-p", "$PORT"]
