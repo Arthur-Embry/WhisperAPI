@@ -34,4 +34,4 @@ RUN cd /app/whisper.cpp && \
 EXPOSE $PORT
 
 # Start the server
-CMD ["/app/whisper.cpp/build/bin/server", "-m", "/app/whisper.cpp/models/ggml-base.en.bin", "-t", "8", "-p", "$PORT"]
+CMD /app/whisper.cpp/build/bin/server -m /app/whisper.cpp/models/ggml-base.en.bin -t 8 -p $PORT
