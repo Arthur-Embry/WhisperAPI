@@ -34,7 +34,7 @@ RUN cd /app/whisper.cpp && \
 RUN /app/whisper.cpp/build/bin/server -m /app/whisper.cpp/models/ggml-base.en.bin -t 8 -p 8000 &
 
 # Install FastAPI and Uvicorn
-RUN pip install --no-cache-dir fastapi uvicorn
+RUN pip install --no-cache-dir fastapi uvicorn httpx
 
 # Copy the middleware code to the container
 COPY middleware.py .
